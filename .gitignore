@@ -1,0 +1,22 @@
+# Maven / Java
+target/
+*.class
+*.jar
+*.log
+hs_err_pid*
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+nbproject/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Datos locales de la app (los JSON de persistencia no se suben)
+data/
