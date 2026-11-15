@@ -20,6 +20,7 @@ import java.util.List;
  * NOTA: las jerarquías (Producto, Usuario) necesitarán un adaptador de Gson para
  * saber a qué subclase corresponde cada objeto (TODO del equipo).
  */
+
 public class RepositorioJson<T> {
 
     private final Path archivo;

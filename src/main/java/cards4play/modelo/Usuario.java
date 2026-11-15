@@ -18,6 +18,9 @@ public abstract class Usuario {
     public String getNombreUsuario() { return nombreUsuario; }
     public Rol getRol() { return rol; }
 
+    /** Solo para guardar en usuarios.json. Nunca se devuelve en una respuesta de la API. */
+    public String getContrasena() { return contrasena; }
+
     public boolean autenticar(String usuario, String clave) {
         return nombreUsuario.equals(usuario) && contrasena.equals(clave);
     }

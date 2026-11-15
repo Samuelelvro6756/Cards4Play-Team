@@ -2,7 +2,7 @@ package cards4play.api;
 
 import com.google.gson.JsonObject;
 
-/** Formato único de error de toda la API: {"error": "mensaje"}. */
+// Formato único de error de toda la API: {"error": "mensaje"}.
 public final class Errores {
 
     private Errores() {}

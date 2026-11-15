@@ -20,4 +20,14 @@ public final class Config {
     public static int puerto() {
         return Integer.parseInt(System.getenv().getOrDefault("PORT", "4567"));
     }
+
+    /** Usuario del administrador por defecto (variable ADMIN_USUARIO). */
+    public static String adminUsuario() {
+        return System.getenv().getOrDefault("ADMIN_USUARIO", "admin");
+    }
+
+    /** Clave del administrador por defecto (variable ADMIN_CLAVE). */
+    public static String adminClave() {
+        return System.getenv().getOrDefault("ADMIN_CLAVE", "admin123");
+    }
 }
