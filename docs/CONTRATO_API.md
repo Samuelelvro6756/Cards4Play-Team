@@ -33,8 +33,33 @@ Las respuestas con precios en COP incluyen `"fuenteTasa": "API"` o `"DEFECTO"`.
 | | `POST /torneos/{id}/inscripciones` | Cliente | C |
 | Tasa | `GET /tasa` | Autenticado | C |
 | Salud | `GET /salud` | Público | A |
+| Sesión | `GET /yo` (devuelve id, usuario y rol de quien llama) | Autenticado | A |
 
 ## Persistencia
 
 Archivos JSON en `DATA_DIR` (por defecto `data/`): `usuarios.json`, `productos.json`, `torneos.json`, `compras.json`.
 Variables de entorno: `TASA_DEFECTO`, `DATA_DIR`, `PORT`.
+
+## Cuerpos y respuestas de ejemplo (área A)
+
+`POST /clientes` (admin) — cuerpo:
+
+```json
+{ "usuario": "ana", "clave": "1234" }
+```
+
+Respuesta `201` (nunca incluye la contraseña):
+
+```json
+{ "id": "…", "usuario": "ana", "rol": "CLIENTE" }
+```
+
+Error (siempre con este formato):
+
+```json
+{ "error": "Ya existe un usuario con ese nombre" }
+```
+
+## Administrador por defecto
+
+Se crea al arrancar si no existe. Usuario `admin` y clave `admin123`, que se cambian con las variables de entorno `ADMIN_USUARIO` y `ADMIN_CLAVE`.
