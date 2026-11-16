@@ -1,6 +1,7 @@
 package cards4play.api;
 
 import cards4play.Main;
+import cards4play.modelo.Administrador;
 import cards4play.modelo.Cliente;
 import cards4play.modelo.Usuario;
 import cards4play.util.Json;
@@ -29,9 +30,9 @@ public final class RutasUsuarios {
         get("/yo", (req, res) -> Json.aJson(vista(Seguridad.usuarioActual(req))));
 
         post("/clientes", (req, res) -> {
-            Seguridad.exigirAdmin(req);
+            Administrador admin = Seguridad.exigirAdmin(req);
             NuevoCliente nuevo = Cuerpo.leer(req, NuevoCliente.class);
-            Cliente cliente = Main.usuarios.registrarCliente(nuevo.usuario, nuevo.clave);
+            Cliente cliente = admin.registrarCliente(nuevo.usuario, nuevo.clave);
             res.status(201);
             return Json.aJson(vista(cliente));
         });
