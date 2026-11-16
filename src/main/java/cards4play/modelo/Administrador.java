@@ -1,5 +1,4 @@
 package cards4play.modelo;
-import cards4play.Main;
 
 public class Administrador extends Usuario {
 
@@ -7,14 +6,15 @@ public class Administrador extends Usuario {
         super(id, nombreUsuario, contrasena, Rol.ADMIN);
     }
 
-    /** Registra un cliente nuevo. Valida los datos (400) y el usuario duplicado (409), y lo guarda en usuarios.json. */
     public Cliente registrarCliente(String usuario, String clave) {
-        return Main.usuarios.registrarCliente(usuario, clave);
+        // TODO(A): validar usuario duplicado (409) y persistir
+        throw new UnsupportedOperationException("TODO");
     }
 
     /** Creación unificada: sirve para cartas, boosters, sellados y accesorios. */
     public void crearProducto(Producto p) {
-        Main.tienda.getInventario().agregarProducto(p);
+        // TODO(B): agregar al Inventario (a través de la Tienda)
+        throw new UnsupportedOperationException("TODO");
     }
 
     public void crearTorneo(Torneo t) {
