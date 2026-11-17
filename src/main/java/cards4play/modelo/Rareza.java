@@ -22,9 +22,17 @@ public enum Rareza {
 
     /** Sortea una rareza según las probabilidades. */
     public static Rareza sortear(Random r) {
-        // TODO(B): sorteo acumulado con r.nextInt(100)
-        throw new UnsupportedOperationException("TODO");
+        int numero = r.nextInt(100);
+        int acumulado = 0;
+        for (Rareza rareza : values()) {
+            acumulado += rareza.probabilidad;
+            if (numero < acumulado) {
+                return rareza;
+            }
+        }
+        return N;
     }
+    
 
     /** Rareza inmediatamente inferior, o null si es la más baja. */
     public Rareza inferior() {
