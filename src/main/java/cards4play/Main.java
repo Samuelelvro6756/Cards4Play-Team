@@ -11,6 +11,7 @@ import cards4play.servicio.Tienda;
 import cards4play.servicio.Usuarios;
 import cards4play.util.ApiException;
 import cards4play.util.Config;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,7 @@ public class Main {
         // Rutas de cada área
         RutasUsuarios.registrar();   // A
         RutasProductos.registrar();  // B
-        RutasCompras.registrar();    // C
+        RutasCompras.registrar(tienda, new Gson());   // C
         RutasTorneos.registrar();    // C
 
         // Errores con formato uniforme: {"error": "mensaje"}
