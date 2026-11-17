@@ -89,6 +89,16 @@ public class Inventario {
         }
         return resultado;
     }
+    
+    public synchronized List<Carta> listarCartas() {
+        List<Carta> resultado = new ArrayList<>();
+        for (Producto p : productos) {
+            if (p instanceof Carta) {
+                resultado.add((Carta) p);
+            }
+        }
+        return resultado;
+    }
 
     public List<Booster> listarBoostersDisponibles() {
         List<Booster> resultado = new ArrayList<>();

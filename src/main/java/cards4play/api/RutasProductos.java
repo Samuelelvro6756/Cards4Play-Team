@@ -32,6 +32,11 @@ public final class RutasProductos {
         double precioUsd;
         String rareza;
     }
+    /** Cuerpo esperado en POST /boosters. */
+    private static class NuevoBooster {
+        String nombre;
+        double precioUsd;
+    }
 
     public static void registrar() {
         post("/productos", (req, res) -> {
@@ -60,7 +65,19 @@ public final class RutasProductos {
             }
             return Json.aJson(vista(p));
         });
-        // Ver docs/GUIA_PARA_B_Y_C.md para saber cómo escribir una ruta.
+        
+         post("/boosters", (req, res) -> {
+            Administrador admin = Seguridad.exigirAdmin(req);
+            NuevoBooster datos = Cuerpo.leer(req, NuevoBooster.class);
+
+            Booster booster = new Booster(UUID.randomUUID().toString(), datos.nombre, datos.precioUsd);
+            inventario().validar(booster);                         // 400 si nombre o precio no sirven
+            booster.generarCartas(inventario().listarCartas());    // 409 si no hay cartas
+            admin.crearProducto(booster);                          // guarda en productos.json
+
+            res.status(201);
+            return Json.aJson(vista(booster));                     // sin mostrar las cartas
+        });
     }
     private static Inventario inventario() {
         return Main.tienda.getInventario();
