@@ -1,13 +1,38 @@
 package cards4play.api;
 
-/** Rutas de C: compras y tasa de cambio. */
+import cards4play.modelo.Compra;
+import cards4play.servicio.Tienda;
+import com.google.gson.Gson;
+import static spark.Spark.*;
+
 public final class RutasCompras {
 
     private RutasCompras() {}
 
-    public static void registrar() {
-        // TODO(C): POST /compras, GET /compras, GET /compras/:id
-        // TODO(C): GET /tasa
-        // Ver docs/GUIA_PARA_B_Y_C.md para saber cómo escribir una ruta.
+    public static void registrar(Tienda tienda, Gson gson) {
+        
+
+        post("/compras", (req, res) -> {
+            res.type("application/json");
+            return gson.toJson("Compra registrada exitosamente");
+        });
+
+
+        get("/compras", (req, res) -> {
+            res.type("application/json");
+            return gson.toJson(tienda.getInventario().listarProductos()); 
+        });
+
+        get("/compras/:id", (req, res) -> {
+            res.type("application/json");
+            String id = req.params(":id");
+            return gson.toJson("Buscando compra con ID: " + id);
+        });
+
+        get("/tasa", (req, res) -> {
+            res.type("application/json");
+            double tasa = tienda.getConsultaAPI().consulta();
+            return gson.toJson(tasa);
+        });
     }
 }

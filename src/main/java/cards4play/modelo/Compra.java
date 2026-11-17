@@ -4,14 +4,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Recibo con una o más líneas de detalle. */
 public class Compra {
 
     private String id;
     private LocalDateTime fecha;
     private List<DetalleCompra> detalles = new ArrayList<>();
     private double totalCop;
-    private String fuenteTasa;   // "API" o "DEFECTO"
+    private String fuenteTasa; // "API" o "DEFECTO"
 
     public Compra(String id, LocalDateTime fecha, String fuenteTasa) {
         this.id = id;
@@ -24,7 +23,31 @@ public class Compra {
     }
 
     public double calcularTotal() {
-        // TODO(C): sumar los subtotales y guardar en totalCop
-        throw new UnsupportedOperationException("TODO");
+        double total = 0;
+        for (DetalleCompra d : detalles) {
+            total += d.subtotal();
+        }
+        this.totalCop = total;
+        return total;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public LocalDateTime getFecha() {
+        return fecha;
+    }
+
+    public List<DetalleCompra> getDetalles() {
+        return detalles;
+    }
+
+    public double getTotalCop() {
+        return totalCop;
+    }
+
+    public String getFuenteTasa() {
+        return fuenteTasa;
     }
 }

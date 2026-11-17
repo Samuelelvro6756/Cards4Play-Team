@@ -1,4 +1,6 @@
 package cards4play.modelo;
+import java.util.UUID;
+import java.time.LocalDateTime;
 
 import cards4play.servicio.Tienda;
 
@@ -13,21 +15,35 @@ public class Cliente extends Usuario {
         super(id, nombreUsuario, contrasena, Rol.CLIENTE);
     }
 
-    public Compra comprar(Tienda t, List<Producto> productos) {
-        // TODO(C): delegar en Tienda.comprar y agregar la compra al historial
-        throw new UnsupportedOperationException("TODO");
-    }
+public Compra comprar(Cliente c, List<Producto> productos) {
+        if (c == null || productos == null || productos.isEmpty()) {
+            throw new IllegalArgumentException("El cliente y la lista de productos no pueden estar vacíos.");
+        }
 
+        String idCompra = UUID.randomUUID().toString().substring(0, 8);
+        Compra compra = new Compra(idCompra, LocalDateTime.now(), "API");
+
+for (Producto p : productos) {
+            if (p instanceof Booster) {
+                ((Booster) p).marcarVendido(c);
+            }
+            DetalleCompra detalle = new DetalleCompra(p, 1, p.getCop());
+            compra.agregarDetalle(detalle);
+        }
+
+        compra.calcularTotal();
+        return compra;
+    }
     public List<Carta> abrirBooster(Booster b) {
         // TODO(B): delegar en Booster.abrir(this)
         throw new UnsupportedOperationException("TODO");
     }
 
     public void inscribirseEn(Torneo t) {
-        // TODO(C): delegar en Torneo.inscribir(this)
-        throw new UnsupportedOperationException("TODO");
+        if (t != null) {
+            t.inscribir(this);
+        }
     }
-
     public List<Compra> verHistorial() {
         return historial;
     }
