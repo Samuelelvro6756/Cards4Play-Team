@@ -78,6 +78,17 @@ public final class RutasProductos {
             res.status(201);
             return Json.aJson(vista(booster));                     // sin mostrar las cartas
         });
+         
+                 get("/boosters/disponibles", (req, res) -> {
+            Seguridad.usuarioActual(req);
+            List<Map<String, Object>> lista = new ArrayList<>();
+            for (Booster b : inventario().listarBoostersDisponibles()) {
+                lista.add(vista(b));        // vista() nunca muestra las cartas
+            }
+            return Json.aJson(lista);
+        });
+
+        // TODO(B): POST /boosters/:id/abrir (siguiente rama)
     }
     private static Inventario inventario() {
         return Main.tienda.getInventario();
