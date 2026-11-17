@@ -28,6 +28,18 @@ public class Booster extends Producto {
         return !vendido;
     }
 
+    public List<Carta> getCartas() { return cartas; }
+    public boolean isVendido() { return vendido; }
+    public boolean isAbierto() { return abierto; }
+    public String getPropietarioId() { return propietarioId; }
+
+    public void restaurar(List<Carta> cartas, boolean vendido, boolean abierto, String propietarioId) {
+        this.cartas = cartas;
+        this.vendido = vendido;
+        this.abierto = abierto;
+        this.propietarioId = propietarioId;
+    }
+    
     public void marcarVendido(Cliente c) {
         // TODO(B): validar que no esté vendido (409) y asignar propietarioId
         throw new UnsupportedOperationException("TODO");

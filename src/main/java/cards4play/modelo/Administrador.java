@@ -1,4 +1,5 @@
 package cards4play.modelo;
+import cards4play.Main;
 
 public class Administrador extends Usuario {
 
@@ -13,8 +14,7 @@ public class Administrador extends Usuario {
 
     /** Creación unificada: sirve para cartas, boosters, sellados y accesorios. */
     public void crearProducto(Producto p) {
-        // TODO(B): agregar al Inventario (a través de la Tienda)
-        throw new UnsupportedOperationException("TODO");
+        Main.tienda.getInventario().agregarProducto(p);
     }
 
     public void crearTorneo(Torneo t) {
