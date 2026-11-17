@@ -35,8 +35,7 @@ for (Producto p : productos) {
         return compra;
     }
     public List<Carta> abrirBooster(Booster b) {
-        // TODO(B): delegar en Booster.abrir(this)
-        throw new UnsupportedOperationException("TODO");
+        return  b.abrir(this);
     }
 
     public void inscribirseEn(Torneo t) {
