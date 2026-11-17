@@ -78,12 +78,21 @@ public class Booster extends Producto {
     }
     
     public void marcarVendido(Cliente c) {
-        // TODO(B): validar que no esté vendido (409) y asignar propietarioId
-        throw new UnsupportedOperationException("TODO");
+       if (vendido) {
+            throw ApiException.conflicto("El booster ya fue vendido");
+        }
+        this.vendido = true;
+        this.propietarioId = c.getId();
     }
 
     public List<Carta> abrir(Cliente c) {
-        // TODO(B): solo el dueño (403), solo una vez (409); el contenido se oculta hasta abrirse
-        throw new UnsupportedOperationException("TODO");
+       if (!vendido || propietarioId == null || !propietarioId.equals(c.getId())) {
+            throw ApiException.prohibido("Este booster no es tuyo");
+        }
+        if (abierto) {
+            throw ApiException.conflicto("El booster ya fue abierto");
+        }
+        this.abierto = true;
+        return new ArrayList<>(cartas);
     }
 }

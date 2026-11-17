@@ -11,6 +11,7 @@ import cards4play.modelo.Rareza;
 import cards4play.servicio.Inventario;
 import cards4play.util.ApiException;
 import cards4play.util.Json;
+import cards4play.modelo.Cliente;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -88,7 +89,26 @@ public final class RutasProductos {
             return Json.aJson(lista);
         });
 
-        // TODO(B): POST /boosters/:id/abrir (siguiente rama)
+               post("/boosters/:id/abrir", (req, res) -> {
+            Cliente cliente = Seguridad.exigirCliente(req);        // 403 si es admin
+            Producto p = inventario().buscarPorId(req.params(":id"));
+            if (!(p instanceof Booster)) {
+                throw ApiException.noEncontrado("No existe un booster con ese id");
+            }
+            Booster booster = (Booster) p;
+            List<Carta> cartas = cliente.abrirBooster(booster);    // 403 ajeno, 409 ya abierto
+            inventario().guardar();                                // guarda abierto = true
+
+            List<Map<String, Object>> contenido = new ArrayList<>();
+            for (Carta c : cartas) {
+                contenido.add(vista(c));
+            }
+            Map<String, Object> respuesta = new LinkedHashMap<>();
+            respuesta.put("id", booster.getId());
+            respuesta.put("nombre", booster.getNombre());
+            respuesta.put("cartas", contenido);
+            return Json.aJson(respuesta);
+        });
     }
     private static Inventario inventario() {
         return Main.tienda.getInventario();
