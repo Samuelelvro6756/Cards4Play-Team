@@ -1,0 +1,11 @@
+.git
+.gitignore
+target/
+data/
+.idea/
+.vscode/
+nbproject/
+nbactions.xml
+*.iml
+*.md
+postman/
