@@ -1,5 +1,5 @@
 package cards4play.modelo;
-
+import cards4play.util.ApiException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,12 +24,19 @@ public class Torneo {
     }
 
     public boolean estaInscrito(Cliente c) {
-        // TODO(C)
-        throw new UnsupportedOperationException("TODO");
+        if (c == null) {
+            return false;
+        }
+        return inscritos.contains(c);
     }
 
     public void inscribir(Cliente c) {
-        // TODO(C): sin pasarse del cupo (409) y sin inscribir dos veces (409)
-        throw new UnsupportedOperationException("TODO");
+        if (!hayCupo()) {
+            throw new ApiException(409, "El torneo ya alcanzó el cupo máximo");
+        }
+        if (estaInscrito(c)) {
+            throw new ApiException(409, "El cliente ya está inscrito en este torneo");
+        }
+        inscritos.add(c);
     }
 }

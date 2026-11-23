@@ -52,9 +52,9 @@ public class Main {
         // Rutas de cada área
         RutasUsuarios.registrar();   // A
         RutasProductos.registrar();  // B
-        RutasCompras.registrar(tienda, new Gson());   // C
-        RutasTorneos.registrar();    // C
-
+        RutasCompras.registrar(tienda, new Gson());  
+        RutasTorneos.registrar(tienda, new Gson());
+        
         // Errores con formato uniforme: {"error": "mensaje"}
         notFound((req, res) -> {
             res.type("application/json");

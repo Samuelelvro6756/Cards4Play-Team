@@ -1,11 +1,13 @@
 package cards4play.servicio;
 
+import cards4play.modelo.Booster;
 import cards4play.modelo.Cliente;
 import cards4play.modelo.Compra;
 import cards4play.modelo.DetalleCompra;
 import cards4play.modelo.Producto;
-import cards4play.modelo.Booster;
+import cards4play.modelo.Torneo;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,6 +15,7 @@ public class Tienda {
 
     private Inventario inventario = new Inventario();
     private ConsultaAPI consultaAPI = new ConsultaAPI();
+    private List<Torneo> torneos = new ArrayList<>();
 
     public Compra comprar(Cliente c, List<Producto> productos) {
         if (c == null || productos == null || productos.isEmpty()) {
@@ -47,5 +50,27 @@ public class Tienda {
 
     public ConsultaAPI getConsultaAPI() {
         return consultaAPI;
+    }
+
+    public Torneo crearTorneo(Torneo torneo) {
+        if (torneo == null) {
+            throw new IllegalArgumentException("El torneo no puede ser nulo.");
+        }
+        torneos.add(torneo);
+        return torneo;
+    }
+
+    public List<Torneo> listarTorneos() {
+        return torneos;
+    }
+
+    public void inscribirEnTorneo(String idTorneo, Cliente cliente) {
+        for (Torneo t : torneos) {
+            if (t.getId().equals(idTorneo)) {
+                t.inscribir(cliente);
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Torneo no encontrado: " + idTorneo);
     }
 }
