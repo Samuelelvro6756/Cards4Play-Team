@@ -39,4 +39,24 @@ public class Torneo {
         }
         inscritos.add(c);
     }
+    
+    public String getId() {
+        return id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public LocalDate getFecha() {
+        return fecha;
+    }
+
+    public int getCupoMaximo() {
+        return cupoMaximo;
+    }
+
+    public List<Cliente> getInscritos() {
+        return inscritos;
+    }
 }
