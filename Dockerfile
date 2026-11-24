@@ -18,8 +18,5 @@ ENV TASA_DEFECTO=4000
 ENV ADMIN_USUARIO=admin
 ENV ADMIN_CLAVE=admin123
 
-# Los archivos JSON se guardan en este volumen, así sobreviven si se borra el contenedor
-VOLUME /app/data
-
 EXPOSE 4567
 CMD ["java", "-jar", "app.jar"]
