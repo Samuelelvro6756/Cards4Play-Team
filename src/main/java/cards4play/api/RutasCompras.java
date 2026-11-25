@@ -4,6 +4,11 @@ import cards4play.modelo.Compra;
 import cards4play.servicio.Tienda;
 import com.google.gson.Gson;
 import static spark.Spark.*;
+import cards4play.Main;
+import cards4play.util.Json;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import static spark.Spark.get;
 
 public final class RutasCompras {
 

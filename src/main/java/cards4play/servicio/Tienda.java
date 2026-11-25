@@ -33,7 +33,7 @@ public class Tienda {
             compra.agregarDetalle(detalle);
         }
 
-        compra.calcularTotal();
+        compra.calcularTotal();   
         return compra;
     }
 
