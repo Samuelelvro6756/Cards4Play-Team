@@ -46,10 +46,12 @@ public final class RutasProductos {
             Producto producto = construir(datos);
             admin.crearProducto(producto);
             res.status(201);
+            refrescarTasa();
             return Json.aJson(vista(producto));
         });
 
         get("/productos", (req, res) -> {
+            refrescarTasa();
             Seguridad.usuarioActual(req);
             List<Map<String, Object>> lista = new ArrayList<>();
             for (Producto p : inventario().listarProductos()) {
@@ -59,6 +61,7 @@ public final class RutasProductos {
         });
 
         get("/productos/:id", (req, res) -> {
+            refrescarTasa();
             Seguridad.usuarioActual(req);
             Producto p = inventario().buscarPorId(req.params(":id"));
             if (p == null) {
@@ -68,6 +71,7 @@ public final class RutasProductos {
         });
         
          post("/boosters", (req, res) -> {
+            
             Administrador admin = Seguridad.exigirAdmin(req);
             NuevoBooster datos = Cuerpo.leer(req, NuevoBooster.class);
 
@@ -77,10 +81,12 @@ public final class RutasProductos {
             admin.crearProducto(booster);                          // guarda en productos.json
 
             res.status(201);
+            refrescarTasa();
             return Json.aJson(vista(booster));                     // sin mostrar las cartas
         });
          
                  get("/boosters/disponibles", (req, res) -> {
+                     refrescarTasa();
             Seguridad.usuarioActual(req);
             List<Map<String, Object>> lista = new ArrayList<>();
             for (Booster b : inventario().listarBoostersDisponibles()) {
@@ -90,6 +96,7 @@ public final class RutasProductos {
         });
 
                post("/boosters/:id/abrir", (req, res) -> {
+                   refrescarTasa();
             Cliente cliente = Seguridad.exigirCliente(req);        // 403 si es admin
             Producto p = inventario().buscarPorId(req.params(":id"));
             if (!(p instanceof Booster)) {
@@ -112,6 +119,10 @@ public final class RutasProductos {
     }
     private static Inventario inventario() {
         return Main.tienda.getInventario();
+    }
+    
+    private static void refrescarTasa() {
+        Main.tienda.actualizarPreciosCop();
     }
 
     private static Producto construir(NuevoProducto d) {
@@ -150,7 +161,7 @@ public final class RutasProductos {
         m.put("nombre", p.getNombre());
         m.put("precioUsd", p.getPrecioUsd());
         m.put("cop", p.getCop());
-        // TODO(B/C): agregar "fuenteTasa" cuando C entregue la tasa desde Tienda
+        m.put("fuenteTasa", Main.tienda.getConsultaAPI().getFuenteTasa());
         if (p instanceof Carta) {
             m.put("rareza", ((Carta) p).getRareza().name());
         }

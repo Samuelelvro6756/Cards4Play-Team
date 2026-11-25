@@ -10,7 +10,7 @@ public class Torneo {
     private String nombre;
     private LocalDate fecha;
     private int cupoMaximo;
-    private List<Cliente> inscritos = new ArrayList<>();
+    private List<String> inscritos = new ArrayList<>();
 
     public Torneo(String id, String nombre, LocalDate fecha, int cupoMaximo) {
         this.id = id;
@@ -24,20 +24,20 @@ public class Torneo {
     }
 
     public boolean estaInscrito(Cliente c) {
-        if (c == null) {
-            return false;
-        }
-        return inscritos.contains(c);
+        return c != null && inscritos.contains(c.getId());
     }
 
     public void inscribir(Cliente c) {
-        if (!hayCupo()) {
-            throw new ApiException(409, "El torneo ya alcanzó el cupo máximo");
-        }
-        if (estaInscrito(c)) {
-            throw new ApiException(409, "El cliente ya está inscrito en este torneo");
-        }
-        inscritos.add(c);
+         if (c == null) {
+        throw ApiException.solicitudInvalida("Falta el cliente");
+    }
+    if (!hayCupo()) {
+        throw ApiException.conflicto("El torneo ya alcanzó el cupo máximo");
+    }
+    if (estaInscrito(c)) {
+        throw ApiException.conflicto("El cliente ya está inscrito en este torneo");
+    }
+    inscritos.add(c.getId());
     }
     
     public String getId() {
@@ -56,7 +56,7 @@ public class Torneo {
         return cupoMaximo;
     }
 
-    public List<Cliente> getInscritos() {
+    public List<String> getInscritos() {
         return inscritos;
     }
 }

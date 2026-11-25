@@ -27,7 +27,7 @@ public class Inventario {
         String propietarioId;      // solo BOOSTER
     }
 
-    private final RepositorioJson<Registro> repositorio = new RepositorioJson<>("Productos.json", Registro.class);
+    private final RepositorioJson<Registro> repositorio = new RepositorioJson<>("productos.json", Registro.class);
     private List<Producto> productos = new ArrayList<>();
 
     public  Inventario(){

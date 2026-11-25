@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Compra {
-
+    private String clienteId;
+    private double tasaUsada;
     private String id;
     private LocalDateTime fecha;
     private List<DetalleCompra> detalles = new ArrayList<>();
@@ -17,6 +18,14 @@ public class Compra {
         this.fecha = fecha;
         this.fuenteTasa = fuenteTasa;
     }
+    
+    public Compra(String id, LocalDateTime fecha, String clienteId, double tasaUsada, String fuenteTasa) {
+    this.id = id;
+    this.fecha = fecha;
+    this.clienteId = clienteId;
+    this.tasaUsada = tasaUsada;
+    this.fuenteTasa = fuenteTasa;
+}
 
     public void agregarDetalle(DetalleCompra d) {
         detalles.add(d);
@@ -50,4 +59,8 @@ public class Compra {
     public String getFuenteTasa() {
         return fuenteTasa;
     }
+    
+    public String getClienteId() { return clienteId; }
+    
+    public double getTasaUsada() { return tasaUsada; }
 }

@@ -6,12 +6,11 @@ import cards4play.api.RutasProductos;
 import cards4play.api.RutasTorneos;
 import cards4play.api.RutasUsuarios;
 import cards4play.api.Seguridad;
-import cards4play.modelo.Torneo;
 import cards4play.servicio.Tienda;
 import cards4play.servicio.Usuarios;
 import cards4play.util.ApiException;
 import cards4play.util.Config;
-import com.google.gson.Gson;
+import cards4play.util.Json;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,9 +24,6 @@ public class Main {
 
     /** La tienda con su inventario. */
     public static Tienda tienda;
-
-    /** Torneos. TODO(C): cargarlos y guardarlos en torneos.json. */
-    public static List<Torneo> torneos = new ArrayList<>();
 
     public static void main(String[] args) {
         usuarios = new Usuarios();   // crea el administrador por defecto si no existe
@@ -52,8 +48,8 @@ public class Main {
         // Rutas de cada área
         RutasUsuarios.registrar();   // A
         RutasProductos.registrar();  // B
-        RutasCompras.registrar(tienda, new Gson());  
-        RutasTorneos.registrar(tienda, new Gson());
+        RutasCompras.registrar(tienda, Json.gson());  
+        RutasTorneos.registrar(tienda, Json.gson());
         
         // Errores con formato uniforme: {"error": "mensaje"}
         notFound((req, res) -> {

@@ -1,6 +1,7 @@
 package cards4play.repositorio;
 
 import cards4play.util.Config;
+import cards4play.util.Json;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -25,7 +26,7 @@ public class RepositorioJson<T> {
 
     private final Path archivo;
     private final Type tipoLista;
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final Gson gson = Json.gson();
 
     public RepositorioJson(String nombreArchivo, Class<T> clase) {
         this.archivo = Paths.get(Config.dataDir(), nombreArchivo);
