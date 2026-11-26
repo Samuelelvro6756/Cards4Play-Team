@@ -12,9 +12,6 @@ import cards4play.util.ApiException;
 import cards4play.util.Config;
 import cards4play.util.Json;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static spark.Spark.*;
 
 public class Main {
@@ -22,7 +19,7 @@ public class Main {
     /** Usuarios (administrador y clientes), guardados en usuarios.json. */
     public static Usuarios usuarios;
 
-    /** La tienda con su inventario. */
+    /** La tienda con su inventario, compras y torneos. */
     public static Tienda tienda;
 
     public static void main(String[] args) {
@@ -46,11 +43,11 @@ public class Main {
         get("/salud", (req, res) -> "{\"estado\":\"ok\"}");
 
         // Rutas de cada área
-        RutasUsuarios.registrar();   // A
-        RutasProductos.registrar();  // B
-        RutasCompras.registrar(tienda, Json.gson());  
+        RutasUsuarios.registrar();
+        RutasProductos.registrar();
+        RutasCompras.registrar(tienda, Json.gson());
         RutasTorneos.registrar(tienda, Json.gson());
-        
+
         // Errores con formato uniforme: {"error": "mensaje"}
         notFound((req, res) -> {
             res.type("application/json");

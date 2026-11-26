@@ -47,6 +47,9 @@ public class Usuarios {
         if (usuario == null || usuario.isBlank() || clave == null || clave.isBlank()) {
             throw ApiException.solicitudInvalida("Se requieren 'usuario' y 'clave'");
         }
+        if (usuario.contains(":")) {
+            throw ApiException.solicitudInvalida("El nombre de usuario no puede contener ':'");
+        }
         for (Usuario u : usuarios) {
             if (u.getNombreUsuario().equals(usuario)) {
                 throw ApiException.conflicto("Ya existe un usuario con ese nombre");
@@ -68,7 +71,6 @@ public class Usuarios {
         return clientes;
     }
 
-    /** Busca un cliente por id (lo usarán C para compras y torneos). Devuelve null si no existe. */
     public synchronized Cliente buscarClientePorId(String id) {
         for (Usuario u : usuarios) {
             if (u instanceof Cliente && u.getId().equals(id)) {

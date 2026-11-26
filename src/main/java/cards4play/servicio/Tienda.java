@@ -62,11 +62,21 @@ public class Tienda {
         return compra;
     }
 
-    public List<Compra> listarCompras() {
+    public synchronized List<Compra> listarCompras() {
         return new ArrayList<>(compras);
     }
 
-    public Compra buscarCompra(String id) {
+    public synchronized List<Compra> listarComprasDe(String clienteId) {
+        List<Compra> resultado = new ArrayList<>();
+        for (Compra c : compras) {
+            if (c.getClienteId() != null && c.getClienteId().equals(clienteId)) {
+                resultado.add(c);
+            }
+        }
+        return resultado;
+    }
+
+    public synchronized Compra buscarCompra(String id) {
         for (Compra c : compras) {
             if (c.getId().equals(id)) {
                 return c;
@@ -96,8 +106,17 @@ public class Tienda {
         return torneo;
     }
 
-    public List<Torneo> listarTorneos() {
+    public synchronized List<Torneo> listarTorneos() {
         return new ArrayList<>(torneos);
+    }
+
+    public synchronized Torneo buscarTorneo(String id) {
+        for (Torneo t : torneos) {
+            if (t.getId().equals(id)) {
+                return t;
+            }
+        }
+        return null;
     }
 
     public synchronized void inscribirEnTorneo(String idTorneo, Cliente cliente) {

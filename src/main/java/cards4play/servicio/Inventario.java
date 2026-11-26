@@ -28,14 +28,13 @@ public class Inventario {
     }
 
     private final RepositorioJson<Registro> repositorio = new RepositorioJson<>("productos.json", Registro.class);
-    private List<Producto> productos = new ArrayList<>();
+    private final List<Producto> productos = new ArrayList<>();
 
-    public  Inventario(){
+    public Inventario() {
         List<Registro> registros = repositorio.leerTodos();
-        for(Registro r : registros){
+        for (Registro r : registros) {
             if (!"BOOSTER".equals(r.tipo)) {
                 productos.add(aProducto(r));
-                
             }
         }
         for (Registro r : registros) {
@@ -45,7 +44,7 @@ public class Inventario {
         }
     }
 
-    public void validar(Producto p){
+    public void validar(Producto p) {
         if (p.getNombre() == null || p.getNombre().isBlank()) {
             throw ApiException.solicitudInvalida("El nombre es obligatorio");
         }
@@ -55,11 +54,10 @@ public class Inventario {
         if (p instanceof Carta && ((Carta) p).getRareza() == null) {
             throw ApiException.solicitudInvalida("La carta necesita una rareza");
         }
-
-
     }
-    public void agregarProducto(Producto p) {
-         validar(p);
+
+    public synchronized void agregarProducto(Producto p) {
+        validar(p);
         if (buscarPorId(p.getId()) != null) {
             throw ApiException.conflicto("Ya existe un producto con ese id");
         }
@@ -67,7 +65,10 @@ public class Inventario {
         guardar();
     }
 
-    public Producto buscarPorId(String id) {
+    public synchronized Producto buscarPorId(String id) {
+        if (id == null) {
+            return null;
+        }
         for (Producto p : productos) {
             if (p.getId().equals(id)) {
                 return p;
@@ -76,11 +77,11 @@ public class Inventario {
         return null;
     }
 
-    public List<Producto> listarProductos() {
+    public synchronized List<Producto> listarProductos() {
         return new ArrayList<>(productos);
     }
 
-    public List<Carta> cartasPorRareza(Rareza r) {
+    public synchronized List<Carta> cartasPorRareza(Rareza r) {
         List<Carta> resultado = new ArrayList<>();
         for (Producto p : productos) {
             if (p instanceof Carta && ((Carta) p).getRareza() == r) {
@@ -89,7 +90,7 @@ public class Inventario {
         }
         return resultado;
     }
-    
+
     public synchronized List<Carta> listarCartas() {
         List<Carta> resultado = new ArrayList<>();
         for (Producto p : productos) {
@@ -100,11 +101,24 @@ public class Inventario {
         return resultado;
     }
 
-    public List<Booster> listarBoostersDisponibles() {
+    public synchronized List<Booster> listarBoostersDisponibles() {
         List<Booster> resultado = new ArrayList<>();
         for (Producto p : productos) {
             if (p instanceof Booster && ((Booster) p).estaDisponible()) {
                 resultado.add((Booster) p);
+            }
+        }
+        return resultado;
+    }
+
+    public synchronized List<Booster> listarBoostersDe(String clienteId) {
+        List<Booster> resultado = new ArrayList<>();
+        for (Producto p : productos) {
+            if (p instanceof Booster) {
+                Booster b = (Booster) p;
+                if (b.isVendido() && clienteId != null && clienteId.equals(b.getPropietarioId())) {
+                    resultado.add(b);
+                }
             }
         }
         return resultado;

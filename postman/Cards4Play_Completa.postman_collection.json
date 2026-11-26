@@ -1,0 +1,4061 @@
+{
+  "info": {
+    "_postman_id": "c4p-cards4play-complete-2026",
+    "name": "Cards4Play - Coleccion Completa (Exitos y Errores)",
+    "description": "Suite completa de pruebas para Cards4Play Backend API (EAM). Valida todos los subsistemas: Salud, Autenticación Basic, Usuarios/Clientes, Tasa USD->COP, Inventario/Productos, Boosters (10 cartas, probabilidades y bonificación R+), Compras e Historial (boosters abiertos vs cerrados), y Torneos. Incluye casos exitosos (200, 201) y errores (400, 401, 403, 404, 409) con pruebas automáticas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4567"
+    },
+    {
+      "key": "adminUser",
+      "value": "admin"
+    },
+    {
+      "key": "adminPass",
+      "value": "admin123"
+    },
+    {
+      "key": "cliente1User",
+      "value": "jugador1"
+    },
+    {
+      "key": "cliente1Pass",
+      "value": "clave123"
+    },
+    {
+      "key": "cliente2User",
+      "value": "jugador2"
+    },
+    {
+      "key": "cliente2Pass",
+      "value": "clave123"
+    },
+    {
+      "key": "cliente1Id",
+      "value": ""
+    },
+    {
+      "key": "cliente2Id",
+      "value": ""
+    },
+    {
+      "key": "sinCartasInicial",
+      "value": "false"
+    },
+    {
+      "key": "cartaNId",
+      "value": ""
+    },
+    {
+      "key": "cartaUCId",
+      "value": ""
+    },
+    {
+      "key": "cartaRId",
+      "value": ""
+    },
+    {
+      "key": "cartaSRId",
+      "value": ""
+    },
+    {
+      "key": "cartaURId",
+      "value": ""
+    },
+    {
+      "key": "selladoId",
+      "value": ""
+    },
+    {
+      "key": "accesorioId",
+      "value": ""
+    },
+    {
+      "key": "booster1Id",
+      "value": ""
+    },
+    {
+      "key": "booster2Id",
+      "value": ""
+    },
+    {
+      "key": "boosterSinVenderId",
+      "value": ""
+    },
+    {
+      "key": "compra1Id",
+      "value": ""
+    },
+    {
+      "key": "torneoId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Salud y Autenticacion (200, 401)",
+      "item": [
+        {
+          "name": "01. GET /salud - Verificar servidor activo (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/salud",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salud"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Endpoint público sin autenticación. También inicializa los usuarios únicos para esta corrida."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Genera nombres únicos de clientes en cada corrida para poder repetir la colección sin colisiones",
+                  "const sufijo = Date.now().toString().slice(-5);",
+                  "pm.collectionVariables.set(\"cliente1User\", \"jugador1_\" + sufijo);",
+                  "pm.collectionVariables.set(\"cliente2User\", \"jugador2_\" + sufijo);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Estado es ok\", function () {",
+                  "    pm.expect(pm.response.json().estado).to.eql(\"ok\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02. GET /yo - Error 401 sin autenticacion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/yo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "yo"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Toda petición distinta a /salud sin encabezado Authorization debe responder 401."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03. GET /yo - Error 401 credenciales invalidas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/yo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "yo"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "clave_incorrecta",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Contraseña incorrecta debe responder 401."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04. GET /yo - Admin autenticado por defecto (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/yo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "yo"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Rol es ADMIN y no expone contraseña\", function () {",
+                  "    const j = pm.response.json();",
+                  "    pm.expect(j.rol).to.eql(\"ADMIN\");",
+                  "    pm.expect(j).to.not.have.property(\"contrasena\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Usuarios y Clientes (201, 200, 400, 403, 409)",
+      "item": [
+        {
+          "name": "05. POST /clientes - Error 400 datos incompletos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"\",\n  \"clave\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06. POST /clientes - Admin crea Cliente 1 (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"{{cliente1User}}\",\n  \"clave\": \"{{cliente1Pass}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set(\"cliente1Id\", j.id);",
+                  "pm.test(\"Cliente 1 creado con rol CLIENTE\", function () {",
+                  "    pm.expect(j.rol).to.eql(\"CLIENTE\");",
+                  "    pm.expect(j).to.not.have.property(\"contrasena\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07. POST /clientes - Error 409 usuario duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"{{cliente1User}}\",\n  \"clave\": \"{{cliente1Pass}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 409\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08. POST /clientes - Admin crea Cliente 2 (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"{{cliente2User}}\",\n  \"clave\": \"{{cliente2Pass}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set(\"cliente2Id\", j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09. POST /clientes - Error 403 cliente intenta crear cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"intruso\",\n  \"clave\": \"123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10. GET /clientes - Error 403 cliente intenta listar clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11. GET /clientes - Admin lista clientes (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clientes"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Devuelve lista sin contraseñas\", function () {",
+                  "    const arr = pm.response.json();",
+                  "    pm.expect(arr).to.be.an(\"array\").and.not.be.empty;",
+                  "    arr.forEach(c => pm.expect(c).to.not.have.property(\"contrasena\"));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "12. GET /yo - Cliente 1 autenticado (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/yo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "yo"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Rol es CLIENTE\", function () {",
+                  "    pm.expect(pm.response.json().rol).to.eql(\"CLIENTE\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Tasa de Cambio USD a COP (API Externa / Defecto)",
+      "item": [
+        {
+          "name": "13. GET /tasa - Consultar tasa vigente y fuenteTasa (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasa",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tasa"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Devuelve usdCop > 0 y fuenteTasa API o DEFECTO\", function () {",
+                  "    const j = pm.response.json();",
+                  "    pm.expect(j.usdCop).to.be.above(0);",
+                  "    pm.expect([\"API\", \"DEFECTO\"]).to.include(j.fuenteTasa);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Inventario y Productos (201, 200, 400, 403, 404, 409)",
+      "item": [
+        {
+          "name": "14. GET /productos?tipo=CARTA - Verificar si catalogo de cartas esta vacio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/productos?tipo=CARTA",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "CARTA"
+                }
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Detecta si el volumen inició vacío para validar el caso 409 de crear booster sin cartas."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const cartas = pm.response.json();",
+                  "pm.collectionVariables.set(\"sinCartasInicial\", cartas.length === 0 ? \"true\" : \"false\");"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "15. POST /boosters - Error 409 si no hay cartas registradas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/boosters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "En un volumen limpio (0 cartas) responde 409 Conflict. Si ya había cartas de una ejecución anterior, crea el booster (201).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sobre Sin Cartas\",\n  \"precioUsd\": 4.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sinCartas = pm.collectionVariables.get(\"sinCartasInicial\") === \"true\";",
+                  "if (sinCartas) {",
+                  "    pm.test(\"Sin cartas en catálogo devuelve 409 Conflict\", function () {",
+                  "        pm.response.to.have.status(409);",
+                  "        pm.expect(pm.response.json()).to.have.property(\"error\");",
+                  "    });",
+                  "} else {",
+                  "    pm.test(\"Ya había cartas de una corrida previa (devuelve 201)\", function () {",
+                  "        pm.response.to.have.status(201);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "16. POST /productos - Crear Carta Normal N (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"CARTA\",\n  \"nombre\": \"Pikachu Base\",\n  \"precioUsd\": 1.5,\n  \"rareza\": \"N\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set(\"cartaNId\", j.id);",
+                  "pm.test(\"Incluye precio COP y fuenteTasa\", function () {",
+                  "    pm.expect(j.cop).to.be.above(0);",
+                  "    pm.expect([\"API\", \"DEFECTO\"]).to.include(j.fuenteTasa);",
+                  "    pm.expect(j.rareza).to.eql(\"N\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "17. POST /productos - Crear Carta Poco Comun UC (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"CARTA\",\n  \"nombre\": \"Charmeleon Fuego\",\n  \"precioUsd\": 3.0,\n  \"rareza\": \"UC\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set(\"cartaUCId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "18. POST /productos - Crear Carta Rara R (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"CARTA\",\n  \"nombre\": \"Mago Oscuro\",\n  \"precioUsd\": 8.0,\n  \"rareza\": \"R\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set(\"cartaRId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "19. POST /productos - Crear Carta Super Rara SR (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"CARTA\",\n  \"nombre\": \"Dragon Blanco de Ojos Azules\",\n  \"precioUsd\": 18.0,\n  \"rareza\": \"SR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set(\"cartaSRId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "20. POST /productos - Crear Carta Ultra Rara UR (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"CARTA\",\n  \"nombre\": \"Black Lotus Edicion Especial\",\n  \"precioUsd\": 50.0,\n  \"rareza\": \"UR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set(\"cartaURId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "21. POST /productos - Crear Producto Sellado (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"SELLADO\",\n  \"nombre\": \"Caja Elite Trainer Box\",\n  \"precioUsd\": 45.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set(\"selladoId\", j.id);",
+                  "pm.test(\"Tipo es SELLADO\", () => pm.expect(j.tipo).to.eql(\"SELLADO\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "22. POST /productos - Crear Accesorio (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"ACCESORIO\",\n  \"nombre\": \"Fundas Dragon Shield x100\",\n  \"precioUsd\": 12.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set(\"accesorioId\", j.id);",
+                  "pm.test(\"Tipo es ACCESORIO\", () => pm.expect(j.tipo).to.eql(\"ACCESORIO\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "23. POST /productos - Error 400 carta sin rareza",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"CARTA\",\n  \"nombre\": \"Carta Incompleta\",\n  \"precioUsd\": 2.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "24. POST /productos - Error 400 precio negativo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"ACCESORIO\",\n  \"nombre\": \"Tapete Gratis\",\n  \"precioUsd\": -10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "25. POST /productos - Error 400 intentar crear BOOSTER en /productos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"BOOSTER\",\n  \"nombre\": \"Booster Mal Ubicado\",\n  \"precioUsd\": 5.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "26. POST /productos - Error 403 cliente intenta crear producto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"ACCESORIO\",\n  \"nombre\": \"Dados\",\n  \"precioUsd\": 4.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "27. PUT /productos/:id - Admin actualiza precio de carta (200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos/{{cartaNId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos",
+                "{{cartaNId}}"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"precioUsd\": 2.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Precio USD actualizado a 2.0\", () => pm.expect(pm.response.json().precioUsd).to.eql(2.0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "28. GET /productos - Cliente consulta inventario completo (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Inventario no vacio y sin revelar cartas de boosters\", function () {",
+                  "    const arr = pm.response.json();",
+                  "    pm.expect(arr).to.be.an(\"array\").and.not.be.empty;",
+                  "    arr.forEach(p => { if (p.tipo === \"BOOSTER\") pm.expect(p).to.not.have.property(\"cartas\"); });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "29. GET /productos?tipo=CARTA - Filtrar solo cartas (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/productos?tipo=CARTA",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "CARTA"
+                }
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Todos los resultados son CARTA\", function () {",
+                  "    pm.response.json().forEach(p => pm.expect(p.tipo).to.eql(\"CARTA\"));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "30. GET /productos/:id - Consultar producto por ID (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/productos/{{cartaURId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos",
+                "{{cartaURId}}"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "31. GET /productos/id-falso - Error 404 producto inexistente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/productos/id-falso-404",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos",
+                "id-falso-404"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Logica de Boosters (Creacion, Ocultamiento y Errores)",
+      "item": [
+        {
+          "name": "32. POST /boosters - Error 403 cliente intenta crear booster",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/boosters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sobre Ilegal\",\n  \"precioUsd\": 5.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "33. POST /boosters - Error 400 nombre vacio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/boosters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\",\n  \"precioUsd\": 5.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "34. POST /boosters - Admin crea Booster 1 (para abrir) (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/boosters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Booster Leyendas Vol 1\",\n  \"precioUsd\": 4.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set(\"booster1Id\", j.id);",
+                  "pm.test(\"Booster oculta sus cartas al crearse\", function () {",
+                  "    pm.expect(j).to.not.have.property(\"cartas\");",
+                  "    pm.expect(j.vendido).to.eql(false);",
+                  "    pm.expect(j.abierto).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "35. POST /boosters - Admin crea Booster 2 (para dejar cerrado) (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/boosters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Booster Sombras Vol 2\",\n  \"precioUsd\": 4.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set(\"booster2Id\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "36. POST /boosters - Admin crea Booster 3 (sin vender) (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/boosters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Booster Sin Vender Vol 3\",\n  \"precioUsd\": 4.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.collectionVariables.set(\"boosterSinVenderId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "37. GET /boosters/disponibles - Listar boosters disponibles sin revelar cartas (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boosters/disponibles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters",
+                "disponibles"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Ningun booster disponible muestra cartas\", function () {",
+                  "    const arr = pm.response.json();",
+                  "    pm.expect(arr.length).to.be.at.least(3);",
+                  "    arr.forEach(b => {",
+                  "        pm.expect(b.vendido).to.eql(false);",
+                  "        pm.expect(b).to.not.have.property(\"cartas\");",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "38. POST /boosters/:id/abrir - Error 403 abrir booster sin comprar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boosters/{{boosterSinVenderId}}/abrir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters",
+                "{{boosterSinVenderId}}",
+                "abrir"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "39. POST /boosters/id-falso/abrir - Error 404 booster inexistente",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boosters/booster-inexistente/abrir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters",
+                "booster-inexistente",
+                "abrir"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 - Compras, Historial y Apertura de Boosters (201, 200, 400, 403, 404, 409)",
+      "item": [
+        {
+          "name": "40. POST /compras - Error 403 admin intenta comprar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/compras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "compras"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productoIds\": [\n    \"{{cartaNId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "41. POST /compras - Error 400 lista de productos vacia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/compras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "compras"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productoIds\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "42. POST /compras - Error 404 producto inexistente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/compras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "compras"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productoIds\": [\n    \"producto-que-no-existe\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "43. POST /compras - Error 409 booster repetido en misma compra",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/compras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "compras"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productoIds\": [\n    \"{{booster1Id}}\",\n    \"{{booster1Id}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 409\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "44. POST /compras - Cliente 1 compra Carta + Sellado + Accesorio + Booster 1 + Booster 2 (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/compras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "compras"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productoIds\": [\n    \"{{cartaNId}}\",\n    \"{{selladoId}}\",\n    \"{{accesorioId}}\",\n    \"{{booster1Id}}\",\n    \"{{booster2Id}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set(\"compra1Id\", j.id);",
+                  "pm.test(\"Compra registra totalCop, fuenteTasa y oculta cartas de boosters no abiertos\", function () {",
+                  "    pm.expect(j.totalCop).to.be.above(0);",
+                  "    pm.expect([\"API\", \"DEFECTO\"]).to.include(j.fuenteTasa);",
+                  "    const boosters = j.detalles.filter(d => d.tipo === \"BOOSTER\");",
+                  "    pm.expect(boosters.length).to.eql(2);",
+                  "    boosters.forEach(b => {",
+                  "        pm.expect(b.abierto).to.eql(false);",
+                  "        pm.expect(b).to.not.have.property(\"cartas\");",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "45. POST /compras - Error 409 Cliente 2 intenta comprar Booster 1 ya vendido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/compras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "compras"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente2User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente2Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productoIds\": [\n    \"{{booster1Id}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 409\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "46. GET /compras - Historial Cliente 1 ANTES de abrir boosters (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/compras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "compras"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Boosters sin abrir siguen sin detallar contenido en el historial\", function () {",
+                  "    const compra = pm.response.json().find(c => c.id === pm.collectionVariables.get(\"compra1Id\"));",
+                  "    pm.expect(compra).to.exist;",
+                  "    compra.detalles.filter(d => d.tipo === \"BOOSTER\").forEach(b => {",
+                  "        pm.expect(b.abierto).to.eql(false);",
+                  "        pm.expect(b).to.not.have.property(\"cartas\");",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "47. GET /compras/:id - Error 403 Cliente 2 intenta ver compra ajena",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/compras/{{compra1Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "compras",
+                "{{compra1Id}}"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente2User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente2Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "48. GET /compras/id-falso - Error 404 compra inexistente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/compras/compra-inexistente",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "compras",
+                "compra-inexistente"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "49. POST /boosters/:id/abrir - Error 403 Cliente 2 intenta abrir booster ajeno",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boosters/{{booster1Id}}/abrir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters",
+                "{{booster1Id}}",
+                "abrir"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente2User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente2Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "50. POST /boosters/:id/abrir - Error 403 Admin intenta abrir booster",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boosters/{{booster1Id}}/abrir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters",
+                "{{booster1Id}}",
+                "abrir"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "51. POST /boosters/:id/abrir - Cliente 1 abre Booster 1 (200 - 10 cartas y bonificacion R+)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boosters/{{booster1Id}}/abrir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters",
+                "{{booster1Id}}",
+                "abrir"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Devuelve exactamente 10 cartas y al menos una R/SR/UR (bonificacion)\", function () {",
+                  "    const j = pm.response.json();",
+                  "    pm.expect(j.abierto).to.eql(true);",
+                  "    pm.expect(j.cartas).to.be.an(\"array\").with.lengthOf(10);",
+                  "    const tieneRaraOSuperior = j.cartas.some(c => [\"R\", \"SR\", \"UR\"].includes(c.rareza));",
+                  "    pm.expect(tieneRaraOSuperior).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "52. POST /boosters/:id/abrir - Error 409 abrir Booster 1 por segunda vez",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boosters/{{booster1Id}}/abrir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters",
+                "{{booster1Id}}",
+                "abrir"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 409\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "53. GET /compras/:id - Historial DESPUES de abrir Booster 1 (muestra cartas de B1, oculta B2) (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/compras/{{compra1Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "compras",
+                "{{compra1Id}}"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Booster 1 abierto muestra sus 10 cartas y Booster 2 cerrado sigue oculto\", function () {",
+                  "    const detalles = pm.response.json().detalles;",
+                  "    const b1 = detalles.find(d => d.productoId === pm.collectionVariables.get(\"booster1Id\"));",
+                  "    const b2 = detalles.find(d => d.productoId === pm.collectionVariables.get(\"booster2Id\"));",
+                  "    pm.expect(b1.abierto).to.eql(true);",
+                  "    pm.expect(b1.cartas).to.be.an(\"array\").with.lengthOf(10);",
+                  "    pm.expect(b2.abierto).to.eql(false);",
+                  "    pm.expect(b2).to.not.have.property(\"cartas\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "54. GET /boosters/mios - Inventario de boosters del Cliente 1 (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boosters/mios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boosters",
+                "mios"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Lista los boosters del cliente (abierto con cartas, cerrado sin cartas)\", function () {",
+                  "    const arr = pm.response.json();",
+                  "    const b1 = arr.find(b => b.id === pm.collectionVariables.get(\"booster1Id\"));",
+                  "    const b2 = arr.find(b => b.id === pm.collectionVariables.get(\"booster2Id\"));",
+                  "    pm.expect(b1.cartas).to.have.lengthOf(10);",
+                  "    pm.expect(b2).to.not.have.property(\"cartas\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "55. GET /compras - Admin consulta historial global de compras (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/compras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "compras"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 - Gestion de Torneos e Inscripciones (201, 200, 400, 403, 404, 409)",
+      "item": [
+        {
+          "name": "56. POST /torneos - Error 403 cliente intenta crear torneo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/torneos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "torneos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Torneo Clandestino\",\n  \"fecha\": \"2026-12-20\",\n  \"cupoMaximo\": 8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "57. POST /torneos - Error 400 fecha con formato invalido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/torneos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "torneos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Torneo Mal Fecha\",\n  \"fecha\": \"20/12/2026\",\n  \"cupoMaximo\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "58. POST /torneos - Error 400 cupoMaximo menor o igual a 0",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/torneos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "torneos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Torneo Sin Cupos\",\n  \"fecha\": \"2026-12-20\",\n  \"cupoMaximo\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "59. POST /torneos - Admin crea Torneo con cupoMaximo 1 (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/torneos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "torneos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Copa Regional Cards4Play\",\n  \"fecha\": \"2026-12-15\",\n  \"cupoMaximo\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set(\"torneoId\", j.id);",
+                  "pm.test(\"Cupos disponibles iniciales igual a 1\", () => pm.expect(j.cuposDisponibles).to.eql(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "60. GET /torneos - Listar torneos disponibles (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/torneos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "torneos"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "61. GET /torneos/:id - Consultar torneo por ID (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/torneos/{{torneoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "torneos",
+                "{{torneoId}}"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "62. GET /torneos/id-falso - Error 404 torneo inexistente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/torneos/torneo-inexistente",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "torneos",
+                "torneo-inexistente"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "63. POST /torneos/:id/inscripciones - Error 403 admin intenta inscribirse",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/torneos/{{torneoId}}/inscripciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "torneos",
+                "{{torneoId}}",
+                "inscripciones"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "64. POST /torneos/id-falso/inscripciones - Error 404 torneo inexistente",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/torneos/torneo-inexistente/inscripciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "torneos",
+                "torneo-inexistente",
+                "inscripciones"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "65. POST /torneos/:id/inscripciones - Cliente 1 se inscribe al torneo (201)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/torneos/{{torneoId}}/inscripciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "torneos",
+                "{{torneoId}}",
+                "inscripciones"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "66. POST /torneos/:id/inscripciones - Error 409 Cliente 1 inscripcion duplicada",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/torneos/{{torneoId}}/inscripciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "torneos",
+                "{{torneoId}}",
+                "inscripciones"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente1User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente1Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 409\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});",
+                  "pm.test(\"Mensaje indica inscripcion duplicada\", () => {",
+                  "    pm.expect(pm.response.json().error.toLowerCase()).to.include(\"ya está inscrito\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "67. POST /torneos/:id/inscripciones - Error 409 Cliente 2 torneo sin cupo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/torneos/{{torneoId}}/inscripciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "torneos",
+                "{{torneoId}}",
+                "inscripciones"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{cliente2User}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cliente2Pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 409\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});",
+                  "pm.test(\"Mensaje indica cupo maximo alcanzado\", () => {",
+                  "    pm.expect(pm.response.json().error.toLowerCase()).to.include(\"cupo\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "68. GET /ruta-inexistente - Error 404 endpoint no existe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ruta-inexistente",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ruta-inexistente"
+              ]
+            },
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status HTTP es 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"Respuesta de error tiene formato uniforme {\\\"error\\\": \\\"...\\\"}\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"error\");",
+                  "    pm.expect(json.error).to.be.a(\"string\").and.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

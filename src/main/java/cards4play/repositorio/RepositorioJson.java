@@ -3,7 +3,6 @@ package cards4play.repositorio;
 import cards4play.util.Config;
 import cards4play.util.Json;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
@@ -17,11 +16,7 @@ import java.util.List;
 
 /**
  * Base para leer y escribir una lista de objetos en un archivo JSON dentro de DATA_DIR.
- * Uso: new RepositorioJson<>("productos.json", Producto.class)
- * NOTA: las jerarquías (Producto, Usuario) necesitarán un adaptador de Gson para
- * saber a qué subclase corresponde cada objeto (TODO del equipo).
  */
-
 public class RepositorioJson<T> {
 
     private final Path archivo;

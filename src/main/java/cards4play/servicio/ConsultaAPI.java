@@ -11,12 +11,12 @@ import java.time.Duration;
 
 public class ConsultaAPI {
 
-    private String urlApi = "https://open.er-api.com/v6/latest/USD";
-    private double tasaDefecto = Config.tasaDefecto();
-    private int timeoutMs = 3000;
+    private final String urlApi = Config.urlApiTasa();
+    private final double tasaDefecto = Config.tasaDefecto();
+    private final int timeoutMs = 3000;
     private String fuenteTasa = "DEFECTO";
 
-    public double consulta() {
+    public synchronized double consulta() {
         try {
             HttpClient client = HttpClient.newBuilder()
                     .connectTimeout(Duration.ofMillis(timeoutMs))
@@ -39,7 +39,7 @@ public class ConsultaAPI {
                 }
             }
         } catch (Exception e) {
-            
+            // Si hay timeout, sin internet o error de parseo, se usa la tasa por defecto
         }
 
         System.out.println("La API no respondió, por lo que se toma un valor por defecto de " + tasaDefecto);
@@ -47,7 +47,7 @@ public class ConsultaAPI {
         return tasaDefecto;
     }
 
-    public String getFuenteTasa() {
+    public synchronized String getFuenteTasa() {
         return fuenteTasa;
     }
 }

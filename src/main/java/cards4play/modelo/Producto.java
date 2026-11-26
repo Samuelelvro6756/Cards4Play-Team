@@ -18,8 +18,11 @@ public abstract class Producto {
     public double getPrecioUsd() { return precioUsd; }
     public double getCop() { return cop; }
 
-    /** Recalcula el precio en COP con la tasa recibida. */
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    public void setPrecioUsd(double precioUsd) { this.precioUsd = precioUsd; }
+
+    /** Recalcula el precio en COP con la tasa recibida (redondeado a 2 decimales). */
     public void actualizarCop(double tasa) {
-        this.cop = precioUsd * tasa;
+        this.cop = Math.round(precioUsd * tasa * 100.0) / 100.0;
     }
 }

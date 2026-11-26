@@ -2,7 +2,7 @@ package cards4play.modelo;
 
 import java.util.Random;
 
-/** Rarezas de las cartas. Las probabilidades viven SOLO aquí. */
+/** Rarezas de las cartas. Las probabilidades viven SOLO aquí y suman 100 %. */
 public enum Rareza {
     N(50),
     UC(25),
@@ -20,7 +20,12 @@ public enum Rareza {
         return probabilidad;
     }
 
-    /** Sortea una rareza según las probabilidades. */
+    /** Indica si la rareza es R o superior (R, SR, UR). */
+    public boolean esRaraOSuperior() {
+        return this.ordinal() >= R.ordinal();
+    }
+
+    /** Sortea una rareza según la tabla de probabilidades. */
     public static Rareza sortear(Random r) {
         int numero = r.nextInt(100);
         int acumulado = 0;
@@ -32,7 +37,30 @@ public enum Rareza {
         }
         return N;
     }
-    
+
+    /**
+     * Sortea una rareza dentro de R, SR y UR respetando exactamente sus pesos relativos
+     * definidos en este mismo enum (para la bonificación de garantía de al menos una R+).
+     */
+    public static Rareza sortearRaraOSuperior(Random r) {
+        int totalPeso = 0;
+        for (Rareza rareza : values()) {
+            if (rareza.esRaraOSuperior()) {
+                totalPeso += rareza.probabilidad;
+            }
+        }
+        int numero = r.nextInt(totalPeso);
+        int acumulado = 0;
+        for (Rareza rareza : values()) {
+            if (rareza.esRaraOSuperior()) {
+                acumulado += rareza.probabilidad;
+                if (numero < acumulado) {
+                    return rareza;
+                }
+            }
+        }
+        return R;
+    }
 
     /** Rareza inmediatamente inferior, o null si es la más baja. */
     public Rareza inferior() {

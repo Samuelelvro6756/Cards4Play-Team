@@ -18,14 +18,14 @@ public class Compra {
         this.fecha = fecha;
         this.fuenteTasa = fuenteTasa;
     }
-    
+
     public Compra(String id, LocalDateTime fecha, String clienteId, double tasaUsada, String fuenteTasa) {
-    this.id = id;
-    this.fecha = fecha;
-    this.clienteId = clienteId;
-    this.tasaUsada = tasaUsada;
-    this.fuenteTasa = fuenteTasa;
-}
+        this.id = id;
+        this.fecha = fecha;
+        this.clienteId = clienteId;
+        this.tasaUsada = tasaUsada;
+        this.fuenteTasa = fuenteTasa;
+    }
 
     public void agregarDetalle(DetalleCompra d) {
         detalles.add(d);
@@ -36,31 +36,15 @@ public class Compra {
         for (DetalleCompra d : detalles) {
             total += d.subtotal();
         }
-        this.totalCop = total;
-        return total;
+        this.totalCop = Math.round(total * 100.0) / 100.0;
+        return this.totalCop;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public LocalDateTime getFecha() {
-        return fecha;
-    }
-
-    public List<DetalleCompra> getDetalles() {
-        return detalles;
-    }
-
-    public double getTotalCop() {
-        return totalCop;
-    }
-
-    public String getFuenteTasa() {
-        return fuenteTasa;
-    }
-    
+    public String getId() { return id; }
+    public LocalDateTime getFecha() { return fecha; }
+    public List<DetalleCompra> getDetalles() { return detalles; }
+    public double getTotalCop() { return totalCop; }
+    public String getFuenteTasa() { return fuenteTasa; }
     public String getClienteId() { return clienteId; }
-    
     public double getTasaUsada() { return tasaUsada; }
 }

@@ -1,4 +1,5 @@
 package cards4play.modelo;
+
 import cards4play.Main;
 
 public class Administrador extends Usuario {
@@ -17,8 +18,8 @@ public class Administrador extends Usuario {
         Main.tienda.getInventario().agregarProducto(p);
     }
 
-    public void crearTorneo(Torneo t) {
-        // TODO(C): agregar a la lista de torneos
-        throw new UnsupportedOperationException("TODO");
+    /** Crea un torneo nuevo y lo persiste en torneos.json. */
+    public Torneo crearTorneo(Torneo t) {
+        return Main.tienda.crearTorneo(t);
     }
 }

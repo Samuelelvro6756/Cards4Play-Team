@@ -7,8 +7,12 @@ public final class Config {
 
     /** Tasa USD->COP que se usa si la API externa no responde (variable TASA_DEFECTO). */
     public static double tasaDefecto() {
-        // TODO(equipo): definir el valor real por defecto y documentarlo en el README
         return Double.parseDouble(System.getenv().getOrDefault("TASA_DEFECTO", "4000"));
+    }
+
+    /** URL de la API externa de tasa de cambio USD->COP (opcional: API_TASA_URL para pruebas de fallback). */
+    public static String urlApiTasa() {
+        return System.getenv().getOrDefault("API_TASA_URL", "https://open.er-api.com/v6/latest/USD");
     }
 
     /** Carpeta donde se guardan los JSON (variable DATA_DIR). */

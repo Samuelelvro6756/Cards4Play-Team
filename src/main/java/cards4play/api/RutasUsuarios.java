@@ -14,7 +14,7 @@ import java.util.Map;
 import static spark.Spark.get;
 import static spark.Spark.post;
 
-/** Rutas de A: quién soy y administración de clientes. */
+/** Rutas de usuarios: quién soy y administración de clientes. */
 public final class RutasUsuarios {
 
     private RutasUsuarios() {}

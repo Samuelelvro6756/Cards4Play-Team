@@ -16,9 +16,9 @@ public class DetalleCompra {
     }
 
     public double subtotal() {
-        return cantidad * precioUnitarioCop;
+        return Math.round(cantidad * precioUnitarioCop * 100.0) / 100.0;
     }
-    
+
     public String getProductoId() { return productoId; }
     public String getNombre() { return nombre; }
     public int getCantidad() { return cantidad; }

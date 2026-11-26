@@ -10,4 +10,5 @@ public class Carta extends Producto {
     }
 
     public Rareza getRareza() { return rareza; }
+    public void setRareza(Rareza rareza) { this.rareza = rareza; }
 }
